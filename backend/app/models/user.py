@@ -15,4 +15,6 @@ class User(Base) :
     
     is_active = Column(Boolean, default=True)
     
+    # Relationships
     articles = relationship("Article", back_populates="user")
+    quiz_attempts = relationship("QuizAttempt", back_populates="user")

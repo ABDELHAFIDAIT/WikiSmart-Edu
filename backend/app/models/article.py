@@ -19,5 +19,4 @@ class Article(Base) :
     
     # Relationships
     user = relationship("User", back_populates="articles")
-    
     quiz_attempts = relationship("QuizAttempt", back_populates="article")
