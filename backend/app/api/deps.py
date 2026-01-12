@@ -1,6 +1,6 @@
 from typing import Generator, Annotated
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2AuthorizationCodeBearer
+from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from sqlalchemy.orm import Session
 from app.core.config import settings
@@ -8,7 +8,7 @@ from app.core.database import SessionLocal
 from app.models.user import User
 
 # indique à FastAPI que pour se loguer, il faut envoyer une requête POST à /api/v1/auth/login
-oauth2_scheme = OAuth2AuthorizationCodeBearer(tokenUrl=f"{settings.API_V1_STR}/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/login")
 
 # Créer une session de base de données pour une requête et la ferme ensuite
 def get_db() :
