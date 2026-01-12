@@ -1,5 +1,5 @@
 # WikiSmart-Edu
-EduSmart est une plateforme éducative intelligente, développée avec FastAPI, PostgreSQL, SQLAlchemy, Pydantic et OAuth 2.0, utilisant un LLM pour résumer, traduire et générer des QCM à partir d’articles Wikipedia, avec vérification d’identité via FaceAPI.
+EduSmart est une plateforme éducative intelligente, développée avec FastAPI, PostgreSQL, SQLAlchemy, Pydantic et OAuth 2.0, utilisant un LLM pour résumer, traduire et générer des QCM à partir d’articles Wikipedia.
 
 <br>
 
@@ -12,7 +12,7 @@ wikismart-edu/
 │   │   │   ├── deps.py         # Dépendances (ex: get_current_user, check_admin)
 │   │   │   └── v1/             # Versionning de l'API
 │   │   │       ├── __init__.py
-│   │   │       ├── auth.py     # Login, Register, FaceAPI check
+│   │   │       ├── auth.py     # Login, Register
 │   │   │       ├── users.py    # CRUD User (Admin only)
 │   │   │       ├── content.py  # Wiki ingestion, PDF upload
 │   │   │       ├── ai_tools.py # Résumé, Traduction, Quiz (LLM endpoints)
@@ -28,6 +28,7 @@ wikismart-edu/
 │   │   │
 │   │   ├── 📂 models/          # Modèles SQLAlchemy (Base de données)
 │   │   │   ├── __init__.py
+│   │   │   ├── enums.py
 │   │   │   ├── user.py         # Table Users
 │   │   │   ├── article.py      # Table Articles
 │   │   │   └── quiz.py         # Table QuizAttempts
@@ -51,7 +52,6 @@ wikismart-edu/
 │   │   │   │   ├── gemini_client.py # Service Traduction & Quiz
 │   │   │   │   └── prompts.py       # Stockage des prompts (System prompts)
 │   │   │   │
-│   │   │   ├── face_auth.py    # Logique FaceAPI
 │   │   │   └── exporter.py     # Génération PDF/TXT des résultats
 │   │   │
 │   │   └── main.py             # Point d'entrée FastAPI
@@ -68,7 +68,7 @@ wikismart-edu/
 │   ├── .dockerignore
 │   ├── Dockerfile              # Image Docker pour le Backend
 │   ├── alembic.ini             # Config migrations BDD
-│   ├── pyproject.toml          # Dépendances (Poetry) ou requirements.txt
+│   ├── requirements.txt          # Dépendances requirements.txt
 │   └── migrations/             # Dossier généré par Alembic
 │
 ├── 📂 frontend/                # Interface Utilisateur (ex: Streamlit)
