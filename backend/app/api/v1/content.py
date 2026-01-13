@@ -10,7 +10,7 @@ from app.models.user import User
 
 router = APIRouter()
 
-@router.post("/wiki/search", response_model=ArticleRequest)
+@router.post("/wiki/search", response_model=ArticleResponse)
 def search_wikipedia(request: ArticleRequest, current_user: User = Depends(get_current_user)) :
     print(f"Recherche demandée par {current_user.username} : {request.topic}")
     
