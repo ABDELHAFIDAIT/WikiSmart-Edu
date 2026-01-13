@@ -43,7 +43,7 @@ class GroqService() :
                     {"role":"system", "content": system_prompt},
                     {"role":"user", "content": f"Résumer ce texte : \n\n{text_chunk}"},
                 ],
-                model=self.model
+                model=self.model,
                 temperature=0.3
             )
             
