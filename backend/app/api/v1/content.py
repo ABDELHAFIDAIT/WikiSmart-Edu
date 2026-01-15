@@ -4,20 +4,23 @@ from typing import Any
 from app.schemas.article import ArticleRequest, ArticleResponse
 from app.services.ingestion.wikipedia import fetch_wiki_page
 from app.services.ingestion.cleaner import clean_text
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, get_db
 from app.models.user import User
+from sqlalchemy.orm import Session
+from app.models.article import Article
 
 
 router = APIRouter()
 
 @router.post("/wiki/search", response_model=ArticleResponse)
-def search_wikipedia(request: ArticleRequest, current_user: User = Depends(get_current_user)) :
+def search_wikipedia(request: ArticleRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) :
     print(f"Recherche demandée par {current_user.username} : {request.topic}")
     
     raw_data = fetch_wiki_page(request.topic)
     
     if raw_data["status"] == "ambiguous" :
         return ArticleResponse(
+            id=0,
             title="Sujet ambigu",
             content="",
             url="https://fr.wikipedia.org",
@@ -39,9 +42,24 @@ def search_wikipedia(request: ArticleRequest, current_user: User = Depends(get_c
     
     cleaned_content = clean_text(raw_data["content"])
     
-    return ArticleResponse(
+    new_article = Article(
         title=raw_data["title"],
-        content=cleaned_content,
         url=raw_data["url"],
+        content=cleaned_content,
+        summary=None,
+        translation=None,
+        action_type=None,
+        user_id=current_user.id
+    )
+    
+    db.add(new_article)
+    db.commit()
+    db.refresh(new_article)
+    
+    return ArticleResponse(
+        id=new_article.id,
+        title=new_article.title,
+        content=new_article.content,
+        url=new_article.url,
         images=raw_data.get("images", [])
     )

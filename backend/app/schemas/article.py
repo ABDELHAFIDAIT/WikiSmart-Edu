@@ -7,6 +7,7 @@ class ArticleRequest(BaseModel) :
 
 
 class ArticleResponse(BaseModel) :
+    id: int
     title: str
     content: str
     url: HttpUrl

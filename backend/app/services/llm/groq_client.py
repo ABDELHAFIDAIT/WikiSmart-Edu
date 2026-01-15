@@ -5,7 +5,7 @@ from app.core.config import settings
 class GroqService() :
     def __init__(self):
         self.client = Groq(api_key=settings.GROQ_API_KEY)
-        self.model = "llama3-8b-8192"
+        self.model = "llama-3.3-70b-versatile"
         
     def generate_summary(self, text: str) :
         if not text :

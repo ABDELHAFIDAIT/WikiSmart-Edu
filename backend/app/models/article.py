@@ -12,7 +12,10 @@ class Article(Base) :
     url = Column(String, nullable=True)
     
     content = Column(Text, nullable=False)
-    action_type = Column(Enum(Action), nullable=False)
+    summary = Column(Text, nullable=True)
+    translation = Column(Text, nullable=True)
+    
+    action_type = Column(Enum(Action), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     user_id = Column(Integer, ForeignKey("users.id"))

@@ -35,6 +35,7 @@ wikismart-edu/
 │   │   │
 │   │   ├── 📂 schemas/         # Modèles Pydantic (Validation des données)
 │   │   │   ├── __init__.py
+│   │   │   ├── ai.py
 │   │   │   ├── user.py         # UserCreate, UserResponse
 │   │   │   ├── article.py      # ArticleRequest (URL), ArticleResponse
 │   │   │   ├── quiz.py         # QuizGenerated, QuizResult
