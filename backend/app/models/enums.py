@@ -8,4 +8,3 @@ class Role(str, Enum) :
 class Action(str, Enum) :
     SUMMARY = "summary"
     TRANSLATION = "translation"
-    QUIZ = "quiz"

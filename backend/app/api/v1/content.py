@@ -46,9 +46,6 @@ def search_wikipedia(request: ArticleRequest, current_user: User = Depends(get_c
         title=raw_data["title"],
         url=raw_data["url"],
         content=cleaned_content,
-        summary=None,
-        translation=None,
-        action_type=None,
         user_id=current_user.id
     )
     
