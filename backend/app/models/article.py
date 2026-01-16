@@ -19,4 +19,4 @@ class Article(Base) :
     # Relationships
     user = relationship("User", back_populates="articles")
     actions = relationship("Action", back_populates="article", cascade="all, delete-orphan")
-    quiz_attempts = relationship("QuizAttempt", back_populates="article")
+    quizzes = relationship("Quiz", back_populates="article", cascade="all, delete-orphan")

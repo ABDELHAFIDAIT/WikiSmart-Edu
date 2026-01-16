@@ -8,6 +8,8 @@ from app.models.enums import Action as ActionEnum
 from app.services.llm.groq_client import groq_service
 from app.services.llm.gemini_client import gemini_service
 from app.schemas.ai import AIRequest, TranslationRequest, ActionResponse
+from app.models.quiz import Quiz, Attempt
+from app.schemas.quiz import QuizGenerated, QuizSubmission, QuizResult
 
 router = APIRouter()
 
@@ -91,3 +93,78 @@ def translate_article_content(
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+
+
+@router.post("/quiz/generate", response_model=QuizGenerated)
+def generate_quiz(request: AIRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) :
+    article = db.query(Article).filter(Article.id == request.article_id).first()
+    
+    if not article :
+        raise HTTPException(status_code=404, detail="Article Introuvable !")
+    
+    questions_data = gemini_service.generate_quiz(article.content)
+    
+    if not questions_data :
+        raise HTTPException(status_code=500, detail="Echec de la génération du quiz !")
+    
+    new_quiz = Quiz(
+        article_id=article.id,
+        details=questions_data
+    )
+    
+    db.add(new_quiz)
+    db.commit()
+    db.refresh(new_quiz)
+
+    return QuizGenerated(
+        quiz_id=new_quiz.id,
+        article_id=article.id,
+        questions=questions_data
+    )
+
+
+
+
+@router.post("/quiz/submit", response_model=QuizResult)
+def submit_quiz(submission: QuizSubmission, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) :
+    quiz = db.query(Quiz).filter(Quiz.id == submission.quiz_id).first()
+    
+    if not quiz:
+        raise HTTPException(status_code=404, detail="Quiz introuvable")
+    
+    questions = quiz.details
+    
+    if len(submission.user_answers) != len(questions):
+        raise HTTPException(status_code=400, detail="Nombre de réponses incorrect")
+    
+    correct_count = 0
+    total = len(questions)
+    
+    for i, question in enumerate(questions) :
+        correct_idx = question.get("correct_index")
+        user_choice = submission.user_answers[i]
+        
+        if user_choice == correct_idx:
+            correct_count += 1
+        
+    score_percentage = (correct_count / total) * 100 if total > 0 else 0
+    
+    new_attempt = Attempt(
+        quiz_id=quiz.id,
+        score=score_percentage,
+        answers=submission.user_answers
+    )
+    
+    db.add(new_attempt)
+    db.commit()
+    db.refresh(new_attempt)
+    
+    msg = "Bravo, Excellent Travail !" if score_percentage >= 70 else "Continuez vos efforts !"
+    
+    return QuizResult(
+        attempt_id=new_attempt.id,
+        score=score_percentage,
+        message=msg
+    )

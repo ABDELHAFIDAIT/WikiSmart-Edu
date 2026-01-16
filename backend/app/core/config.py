@@ -20,6 +20,10 @@ class Settings(BaseSettings) :
     LOG_LEVEL: str = "INFO"
     API_V1_STR: str = "/api/v1"
     
+    FIRST_SUPERUSER_EMAIL: str
+    FIRST_SUPERUSER_PASSWORD: str
+    FIRST_SUPERUSER_USERNAME: str
+    
     @property
     def SQLALCHEMY_DATABASE_URL(self) :
         return(f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}")
