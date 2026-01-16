@@ -8,13 +8,15 @@ from app.api.deps import get_current_user, get_db
 from app.models.user import User
 from sqlalchemy.orm import Session
 from app.models.article import Article
+from app.core.logging import logger
+
 
 
 router = APIRouter()
 
 @router.post("/wiki/search", response_model=ArticleResponse)
 def search_wikipedia(request: ArticleRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) :
-    print(f"Recherche demandée par {current_user.username} : {request.topic}")
+    logger.info(f"Recherche Wikipedia : '{request.topic}' par User ID {current_user.id}")
     
     raw_data = fetch_wiki_page(request.topic)
     
@@ -29,6 +31,7 @@ def search_wikipedia(request: ArticleRequest, current_user: User = Depends(get_c
         )
     
     if raw_data["status"] == "not_found" :
+        logger.warning(f"Aucune page trouvée pour : {request.url}")
         raise HTTPException(
             status_code=404,
             detail=f"Aucune page Wikipédia trouvée pour '{request.topic}'"
@@ -39,7 +42,7 @@ def search_wikipedia(request: ArticleRequest, current_user: User = Depends(get_c
             status_code=500,
             detail=f"Erreur interne : {raw_data['error']}"
         )
-    
+        
     cleaned_content = clean_text(raw_data["content"])
     
     new_article = Article(
@@ -52,6 +55,8 @@ def search_wikipedia(request: ArticleRequest, current_user: User = Depends(get_c
     db.add(new_article)
     db.commit()
     db.refresh(new_article)
+    
+    logger.info(f"Article trouvé et sauvegardé : {raw_data['title']}")
     
     return ArticleResponse(
         id=new_article.id,

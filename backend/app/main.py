@@ -1,14 +1,20 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.api.v1 import auth, content, ai_tools
 from contextlib import asynccontextmanager
 from app.core.init_db import init_db
 from app.core.database import SessionLocal
+from app.core.logging import setup_logging
+from app.core.exceptions import global_exception_handler, http_exception_handler
+from fastapi.exceptions import RequestValidationError
+from app.core.logging import logger
+import time
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    setup_logging()
     db = SessionLocal()
     try:
         init_db(db)
@@ -24,6 +30,27 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
     lifespan=lifespan
 )
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start_time = time.time()
+    
+    response = await call_next(request)
+    
+    process_time = time.time() - start_time
+    
+    logger.info(
+        f"{request.method} {request.url.path} - "
+        f"Status: {response.status_code} - "
+        f"Durée: {process_time:.2f}s"
+    )
+    
+    return response
+
+
+app.add_exception_handler(Exception, global_exception_handler)
+app.add_exception_handler(HTTPException, http_exception_handler)
+
 
 origins = ["*"]
 

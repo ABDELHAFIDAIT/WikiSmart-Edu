@@ -1,5 +1,6 @@
 from groq import Groq
 from app.core.config import settings
+from app.core.logging import logger
 
 
 class GroqService() :
@@ -8,7 +9,10 @@ class GroqService() :
         self.model = "llama-3.3-70b-versatile"
         
     def generate_summary(self, text: str) :
+        logger.info("Envoi de la demande de résumé à Groq...")
+        
         if not text :
+            logger.warning("Tentative de résumé sur un texte vide.")
             return "Aucun texte à résumer !"
         
         text_chunk = text[:15000]
@@ -47,10 +51,12 @@ class GroqService() :
                 temperature=0.3
             )
             
+            logger.debug("Réponse brute reçue de Groq.")
+            
             return chat_completion.choices[0].message.content
         
         except Exception as e :
-            print(f"Erreur Groq : {e}")
+            logger.error(f"Erreur critique Groq (Résumé) : {str(e)}")
             return "Erreur lors de la génération du résumé avec Groq !"
 
 

@@ -1,6 +1,8 @@
 import google.generativeai as genai
 from app.core.config import settings
 import json
+from app.core.logging import logger
+
 
 
 class GeminiService() :
@@ -10,6 +12,8 @@ class GeminiService() :
     
     
     def translate_article(self, text:str, target_lang: str) :
+        logger.info(f"Envoi de la traduction ({target_lang}) à Gemini...")
+        
         if not text :
             return "Aucun texte à traduire."
         
@@ -25,9 +29,10 @@ class GeminiService() :
         
         try:
             response = self.model.generate_content(prompt)
+            logger.info("Traduction reçue avec succès.")
             return response.text
         except Exception as e:
-            print(f"Erreur Gemini : {e}")
+            logger.error(f"Erreur critique Gemini (Traduction) : {str(e)}")
             return f"Erreur lors de la traduction : {str(e)}"
     
     
@@ -46,6 +51,8 @@ class GeminiService() :
             "4. 'correct_index' est un entier (0, 1, 2 ou 3)."
             f"\n\nTexte source :\n{text[:20000]}"
         )
+        
+        logger.debug("Envoi du prompt Quiz à Gemini...")
         
         try :
             response = self.model.generate_content(prompt)
@@ -77,11 +84,12 @@ class GeminiService() :
             
             return validated_quiz            
         except json.JSONDecodeError:
-            print("Erreur : L'IA n'a pas renvoyé du JSON valide.")
+            logger.error("Erreur de parsing JSON venant de Gemini")
+            logger.debug(f"Texte brut reçu : {cleaned_text[:100]}...")
             return []
         
         except Exception as e:
-            print(f"Erreur Gemini Quiz : {e}")
+            logger.error(f"Exception Gemini : {str(e)}")
             return []
         
         

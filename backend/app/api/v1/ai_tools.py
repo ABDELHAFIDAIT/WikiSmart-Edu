@@ -10,12 +10,15 @@ from app.services.llm.gemini_client import gemini_service
 from app.schemas.ai import AIRequest, TranslationRequest, ActionResponse
 from app.models.quiz import Quiz, Attempt
 from app.schemas.quiz import QuizGenerated, QuizSubmission, QuizResult
+from app.core.logging import logger
 
 router = APIRouter()
 
 
 @router.post("/summary", response_model=ActionResponse, )
 def generate_summary(request: AIRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) :
+    
+    logger.info(f"Demande de résumé pour l'article ID {request.article_id}")
     
     article = db.query(Article).filter(
         Article.id == request.article_id,
@@ -27,6 +30,8 @@ def generate_summary(request: AIRequest, current_user: User = Depends(get_curren
     
     try :
         summary_text = groq_service.generate_summary(article.content)
+        
+        logger.info(f"Résumé généré avec succès ({len(summary_text)} chars)")
         
         new_action = Action(
             article_id=article.id,
@@ -47,17 +52,17 @@ def generate_summary(request: AIRequest, current_user: User = Depends(get_curren
         )
     
     except Exception as e :
+        logger.error(f"Erreur lors du résumé : {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 
 
 @router.post("/translate", response_model=ActionResponse)
-def translate_article_content(
-    request: TranslationRequest,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
+def translate_article_content(request: TranslationRequest,current_user: User = Depends(get_current_user),db: Session = Depends(get_db)):
+    
+    logger.info(f"Demande de traduction (Article {request.article_id}) vers {request.target_lang}")
+    
     article = db.query(Article).filter(
         Article.id == request.article_id,
         Article.user_id == current_user.id
@@ -72,6 +77,8 @@ def translate_article_content(
             text=article.content, 
             target_lang=request.target_lang
         )
+        
+        logger.info("Traduction terminée")
         
         new_action = Action(
             article_id=article.id,
@@ -92,6 +99,7 @@ def translate_article_content(
         )
         
     except Exception as e:
+        logger.error(f"Erreur traduction : {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -99,6 +107,9 @@ def translate_article_content(
 
 @router.post("/quiz/generate", response_model=QuizGenerated)
 def generate_quiz(request: AIRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) :
+    
+    logger.info(f"Génération de Quiz pour l'article ID {request.article_id}")
+    
     article = db.query(Article).filter(Article.id == request.article_id).first()
     
     if not article :
@@ -107,7 +118,10 @@ def generate_quiz(request: AIRequest, current_user: User = Depends(get_current_u
     questions_data = gemini_service.generate_quiz(article.content)
     
     if not questions_data :
+        logger.error("L'IA a renvoyé une liste de questions vide")
         raise HTTPException(status_code=500, detail="Echec de la génération du quiz !")
+    
+    logger.info(f"Quiz généré avec {len(questions_data)} questions")
     
     new_quiz = Quiz(
         article_id=article.id,
