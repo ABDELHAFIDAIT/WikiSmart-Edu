@@ -1,7 +1,17 @@
 import wikipedia
-from typing import Dict, Any, Optional
+import requests
+from app.core.config import settings
+
+
+session = requests.Session()
+user_agent = f"WikiSmart-Edu/1.0 (contact : {settings.WIKI_CONTACT_EMAIL})"
+session.headersx.update({
+    "User-Agent" : user_agent
+})
+wikipedia.requests = session
 
 wikipedia.set_lang("fr")
+
 
 # Recherche une page Wikipédia et retourne son contenu
 def fetch_wiki_page(topic:str) :
