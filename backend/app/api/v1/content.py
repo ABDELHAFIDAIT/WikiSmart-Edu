@@ -35,7 +35,7 @@ def search_wikipedia(request: ArticleRequest, current_user: User = Depends(get_c
         )
     
     if raw_data["status"] == "not_found" :
-        logger.warning(f"Aucune page trouvée pour : {request.url}")
+        logger.warning(f"Aucune page trouvée pour : {request.topic}")
         raise HTTPException(
             status_code=404,
             detail=f"Aucune page Wikipédia trouvée pour '{request.topic}'"
