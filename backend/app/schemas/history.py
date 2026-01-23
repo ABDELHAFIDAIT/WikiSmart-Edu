@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
-from typing import List, Optional, Any
+from typing import List, Optional, Any, Dict
 from app.models.enums import Action as ActionEnum
 
 class ArticleHistoryItem(BaseModel):
@@ -41,3 +41,20 @@ class AttemptHistoryItem(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class ArticleDetail(ArticleHistoryItem):
+    content: str 
+
+
+class ActionDetail(ActionHistoryItem):
+    result: str 
+
+
+class QuizDetail(QuizHistoryItem):
+    details: List[Dict[str, Any]]
+
+
+class AttemptDetail(AttemptHistoryItem):
+    answers: Dict[str, Any]
+    quiz: QuizDetail

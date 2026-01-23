@@ -8,7 +8,7 @@ from typing import Optional, List
 from app.models.action import Action
 from app.models.quiz import Quiz, Attempt
 from app.models.article import Article
-from app.schemas.history import ArticleHistoryItem, ActionHistoryItem, QuizHistoryItem, AttemptHistoryItem
+from app.schemas.history import ArticleHistoryItem, ActionHistoryItem, QuizHistoryItem, AttemptHistoryItem, ArticleDetail, ActionDetail, QuizDetail, AttemptDetail
 
 
 router = APIRouter()
@@ -115,3 +115,66 @@ def get_quiz_attempts(
 
     attempts = db.query(Attempt).filter(Attempt.quiz_id == quiz_id).order_by(Attempt.submitted_at.desc()).all()
     return attempts
+
+
+
+
+@router.get("/me/history/articles/{article_id}/full", response_model=ArticleDetail)
+def get_article_detail(article_id: int,current_user: User = Depends(get_current_user),db: Session = Depends(get_db)) :
+    article = db.query(Article).filter(Article.id == article_id, Article.user_id == current_user.id).first()
+    if not article:
+        raise HTTPException(status_code=404, detail="Article introuvable ou accès refusé")
+    
+    is_wiki = article.url and article.url.startswith("http")
+    article.source_type = "Wikipedia" if is_wiki else "PDF"
+    
+    return article
+
+
+
+
+@router.get("/me/history/actions/{action_id}/full", response_model=ActionDetail)
+def get_action_detail(action_id: int,current_user: User = Depends(get_current_user),db: Session = Depends(get_db)) :
+    action = db.query(Action).join(Article).filter(
+        Action.id == action_id, 
+        Article.user_id == current_user.id
+    ).first()
+    
+    if not action:
+        raise HTTPException(status_code=404, detail="Action introuvable")
+    
+    action.result_preview = action.result[:100] + "..." if action.result else ""
+    return action
+
+
+
+
+@router.get("/me/history/quizzes/{quiz_id}/full", response_model=QuizDetail)
+def get_quiz_detail(quiz_id: int,current_user: User = Depends(get_current_user),db: Session = Depends(get_db)) :
+    quiz = db.query(Quiz).join(Article).filter(
+        Quiz.id == quiz_id, 
+        Article.user_id == current_user.id
+    ).first()
+    
+    if not quiz:
+        raise HTTPException(status_code=404, detail="Quiz introuvable")
+    
+    quiz.nb_questions = len(quiz.details) if isinstance(quiz.details, list) else 0
+    return quiz
+
+
+
+
+@router.get("/me/history/attempts/{attempt_id}/full", response_model=AttemptDetail)
+def get_attempt_detail(attempt_id: int,current_user: User = Depends(get_current_user),db: Session = Depends(get_db)) :
+    attempt = db.query(Attempt).join(Quiz).join(Article).filter(
+        Attempt.id == attempt_id, 
+        Article.user_id == current_user.id
+    ).first()
+    
+    if not attempt:
+        raise HTTPException(status_code=404, detail="Tentative introuvable")
+
+    attempt.quiz.nb_questions = len(attempt.quiz.details) if isinstance(attempt.quiz.details, list) else 0
+    
+    return attempt
