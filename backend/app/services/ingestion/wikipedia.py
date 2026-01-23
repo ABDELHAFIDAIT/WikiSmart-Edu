@@ -5,7 +5,7 @@ from app.core.config import settings
 
 session = requests.Session()
 user_agent = f"WikiSmart-Edu/1.0 (contact : {settings.WIKI_CONTACT_EMAIL})"
-session.headersx.update({
+session.headers.update({
     "User-Agent" : user_agent
 })
 wikipedia.requests = session
