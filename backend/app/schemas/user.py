@@ -12,7 +12,7 @@ class UserCreate(UserBase) :
     password: str
 
 
-class UserUpdatePassword() :
+class UserUpdatePassword(BaseModel) :
     old_password: str
     new_password: str
 
