@@ -12,6 +12,10 @@ class UserCreate(UserBase) :
     password: str
 
 
+class UserUpdatePassword() :
+    old_password: str
+    new_password: str
+
 class User(UserBase) :
     id : int
     model_config = {"from_attributes": True}

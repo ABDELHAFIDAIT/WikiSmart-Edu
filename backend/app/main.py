@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api.v1 import auth, content, ai_tools
+from app.api.v1 import auth, content, ai_tools, users
 from contextlib import asynccontextmanager
 from app.core.init_db import init_db
 from app.core.database import SessionLocal
@@ -65,6 +65,7 @@ app.add_middleware(
 app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["Authentication"])
 app.include_router(content.router, prefix=settings.API_V1_STR, tags=["Wikipedia"])
 app.include_router(ai_tools.router, prefix=f"{settings.API_V1_STR}/ai", tags=["AI Tools"])
+app.include_router(users.router, prefix=f"{settings.API_V1_STR}/users", tags=["Users"])
 
 @app.get("/")
 def root() :
