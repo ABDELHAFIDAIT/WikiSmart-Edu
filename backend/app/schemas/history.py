@@ -56,5 +56,5 @@ class QuizDetail(QuizHistoryItem):
 
 
 class AttemptDetail(AttemptHistoryItem):
-    answers: Dict[str, Any]
+    answers: List[int]
     quiz: QuizDetail
