@@ -106,3 +106,26 @@ else:
         if 'current_summary' in st.session_state:
             st.success("Resume genere avec succes :")
             st.write(st.session_state['current_summary'])
+        
+        
+        
+        st.write("---")
+        st.subheader("Traduire l'article")
+        
+        langue = st.selectbox("Choisir une langue", ["Anglais", "Arabe", "Espagnol", "Allemand"])
+        
+        if st.button("Traduire"):
+            from utils import translate_article_request
+            
+            with st.spinner("Traduction en cours..."):
+                res = translate_article_request(st.session_state['token'], art['id'], langue)
+                
+                if res and res.status_code == 200:
+                    data = res.json()
+                    st.session_state['current_translation'] = data['result']
+                else:
+                    st.error("Erreur lors de la traduction")
+
+        if 'current_translation' in st.session_state:
+            st.success("Traduction :")
+            st.write(st.session_state['current_translation'][:1000] + "...")

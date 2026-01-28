@@ -65,3 +65,17 @@ def generate_summary_request(token, article_id):
         return response
     except:
         return None
+
+
+
+
+def translate_article_request(token, article_id, target_lang):
+    url = f"{API_URL}/ai/translate"
+    headers = {"Authorization": f"Bearer {token}"}
+    payload = {"article_id": article_id, "target_lang": target_lang}
+    
+    try:
+        response = requests.post(url, json=payload, headers=headers)
+        return response
+    except:
+        return None
