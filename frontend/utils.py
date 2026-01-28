@@ -79,3 +79,30 @@ def translate_article_request(token, article_id, target_lang):
         return response
     except:
         return None
+    
+    
+    
+def generate_quiz_request(token, article_id):
+    url = f"{API_URL}/ai/quiz/generate"
+    headers = {"Authorization": f"Bearer {token}"}
+    payload = {"article_id": article_id}
+    
+    try:
+        response = requests.post(url, json=payload, headers=headers)
+        return response
+    except:
+        return None
+
+
+
+
+def submit_quiz_request(token, quiz_id, answers):
+    url = f"{API_URL}/ai/quiz/submit"
+    headers = {"Authorization": f"Bearer {token}"}
+    payload = {"quiz_id": quiz_id, "user_answers": answers}
+    
+    try:
+        response = requests.post(url, json=payload, headers=headers)
+        return response
+    except:
+        return None

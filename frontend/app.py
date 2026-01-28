@@ -129,3 +129,52 @@ else:
         if 'current_translation' in st.session_state:
             st.success("Traduction :")
             st.write(st.session_state['current_translation'][:1000] + "...")
+            
+        
+        
+        
+        st.write("---")
+        st.subheader("Quiz de connaissances")
+        
+        if st.button("Generer un Quiz"):
+            from utils import generate_quiz_request
+            
+            with st.spinner("Generation des questions..."):
+                res = generate_quiz_request(st.session_state['token'], art['id'])
+                
+                if res and res.status_code == 200:
+                    st.session_state['current_quiz'] = res.json()
+                    if 'quiz_result' in st.session_state:
+                        del st.session_state['quiz_result']
+                else:
+                    st.error("Erreur generation quiz")
+
+        if 'current_quiz' in st.session_state:
+            quiz_data = st.session_state['current_quiz']
+            st.write(f"Questionnaire : {len(quiz_data['questions'])} questions")
+            
+            with st.form("quiz_form"):
+                user_answers_indices = []
+                
+                for q in quiz_data['questions']:
+                    st.write(f"**{q['question']}**")
+                    choix = st.radio("Reponse :", q['options'], key=q['id'])
+                    index_choix = q['options'].index(choix)
+                    user_answers_indices.append(index_choix)
+                    st.write("---")
+                
+                submitted = st.form_submit_button("Valider mes reponses")
+                
+                if submitted:
+                    from utils import submit_quiz_request
+                    res = submit_quiz_request(st.session_state['token'], quiz_data['quiz_id'], user_answers_indices)
+                    
+                    if res and res.status_code == 200:
+                        st.session_state['quiz_result'] = res.json()
+                    else:
+                        st.error("Erreur lors de la correction")
+
+        if 'quiz_result' in st.session_state:
+            result = st.session_state['quiz_result']
+            st.success(f"Score : {result['score']}%")
+            st.info(result['message'])
