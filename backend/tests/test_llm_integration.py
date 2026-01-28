@@ -7,12 +7,12 @@ from unittest.mock import patch
 def get_auth_token(client: TestClient):
     client.post(
         f"{settings.API_V1_STR}/auth/signup",
-        json={"email": "ai_user@test.com", "username": "ai_user", "password": "password123"}
+        json={"email": "user@gmail.com", "username": "user", "password": "password123"}
     )
 
     res = client.post(
         f"{settings.API_V1_STR}/auth/login",
-        data={"username": "ai_user", "password": "password123"}
+        data={"username": "user", "password": "password123"}
     )
     
     assert res.status_code == 200, f"Login failed: {res.text}"
@@ -33,7 +33,7 @@ def create_test_article(client: TestClient, headers: dict):
         res = client.post(
             f"{settings.API_V1_STR}/wiki/search",
             headers=headers,
-            json={"topic": "Integration Test", "url": ""}
+            json={"topic": "Integration Test"}
         )
         assert res.status_code == 200
         return res.json()

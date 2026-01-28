@@ -10,11 +10,11 @@ import io
 def get_auth_headers(client: TestClient):
     client.post(
         f"{settings.API_V1_STR}/auth/signup",
-        json={"email": "tester@test.com", "username": "tester", "password": "password123"}
+        json={"email": "user@gmail.com", "username": "user", "password": "password123"}
     )
     login = client.post(
         f"{settings.API_V1_STR}/auth/login",
-        data={"username": "tester", "password": "password123"}
+        data={"username": "user", "password": "password123"}
     )
     token = login.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
