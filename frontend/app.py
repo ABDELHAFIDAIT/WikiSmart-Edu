@@ -61,5 +61,48 @@ else:
         st.rerun()
     
     st.write("---")
-    st.write("Bienvenue sur votre espace.")
-    st.write("(Ici nous ajouterons la recherche d'articles plus tard)")
+    
+
+    st.subheader("Rechercher un article")
+    search_query = st.text_input("Sujet Wikipédia :")
+    
+    if st.button("Chercher"):
+        if search_query:
+            from utils import search_wiki
+            with st.spinner("Recherche en cours..."):
+                res = search_wiki(st.session_state['token'], search_query)
+                
+                if res and res.status_code == 200:
+                    article = res.json()
+                    st.session_state['current_article'] = article
+                    st.success(f"Article trouvé : {article['title']}")
+                elif res and res.status_code == 404:
+                    st.warning("Aucun article trouvé.")
+                else:
+                    st.error("Erreur lors de la recherche.")
+
+
+    if 'current_article' in st.session_state:
+        art = st.session_state['current_article']
+        st.write("---")
+        st.header(art['title'])
+        st.write(art['content'][:1000] + "...")
+        
+        st.write("---")
+        st.subheader("Outils Intelligence Artificielle")
+        
+        if st.button("Generer un Resume"):
+            from utils import generate_summary_request
+            
+            with st.spinner("L'IA travaille..."):
+                res = generate_summary_request(st.session_state['token'], art['id'])
+                
+                if res and res.status_code == 200:
+                    data = res.json()
+                    st.session_state['current_summary'] = data['result']
+                else:
+                    st.error("Erreur lors de la generation du resume")
+
+        if 'current_summary' in st.session_state:
+            st.success("Resume genere avec succes :")
+            st.write(st.session_state['current_summary'])

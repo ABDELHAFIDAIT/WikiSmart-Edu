@@ -39,3 +39,29 @@ def get_user_profile(token):
         return response
     except:
         return None
+    
+    
+
+def search_wiki(token, topic):
+    url = f"{API_URL}/wiki/search"
+    headers = {"Authorization": f"Bearer {token}"}
+    payload = {"topic": topic}
+    
+    try:
+        response = requests.post(url, json=payload, headers=headers)
+        return response
+    except:
+        return None
+    
+
+
+def generate_summary_request(token, article_id):
+    url = f"{API_URL}/ai/summary"
+    headers = {"Authorization": f"Bearer {token}"}
+    payload = {"article_id": article_id}
+    
+    try:
+        response = requests.post(url, json=payload, headers=headers)
+        return response
+    except:
+        return None
