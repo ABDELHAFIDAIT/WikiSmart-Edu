@@ -106,3 +106,23 @@ def submit_quiz_request(token, quiz_id, answers):
         return response
     except:
         return None
+    
+    
+def get_history_articles(token):
+    url = f"{API_URL}/users/me/history/articles"
+    headers = {"Authorization": f"Bearer {token}"}
+    try:
+        return requests.get(url, headers=headers)
+    except:
+        return None
+
+
+
+
+def get_full_article(token, article_id):
+    url = f"{API_URL}/users/me/history/articles/{article_id}/full"
+    headers = {"Authorization": f"Bearer {token}"}
+    try:
+        return requests.get(url, headers=headers)
+    except:
+        return None

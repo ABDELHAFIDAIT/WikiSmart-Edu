@@ -50,131 +50,109 @@ if st.session_state['token'] is None:
 
 
 else:
-    profil = get_user_profile(st.session_state['token'])
+    st.sidebar.write(f"Utilisateur : {get_user_profile(st.session_state['token']).json()['username']}")    
     
-    if profil and profil.status_code == 200:
-        infos = profil.json()
-        st.write(f"Bonjour {infos['username']} !")
+    menu = st.sidebar.radio("Navigation", ["Espace de Travail", "Historique"])
     
     if st.sidebar.button("Se deconnecter"):
         st.session_state['token'] = None
         st.rerun()
-    
-    st.write("---")
-    
 
-    st.subheader("Rechercher un article")
-    search_query = st.text_input("Sujet Wikipédia :")
     
-    if st.button("Chercher"):
-        if search_query:
-            from utils import search_wiki
-            with st.spinner("Recherche en cours..."):
-                res = search_wiki(st.session_state['token'], search_query)
-                
-                if res and res.status_code == 200:
-                    article = res.json()
-                    st.session_state['current_article'] = article
-                    st.success(f"Article trouvé : {article['title']}")
-                elif res and res.status_code == 404:
-                    st.warning("Aucun article trouvé.")
-                else:
-                    st.error("Erreur lors de la recherche.")
-
-
-    if 'current_article' in st.session_state:
-        art = st.session_state['current_article']
-        st.write("---")
-        st.header(art['title'])
-        st.write(art['content'][:1000] + "...")
+    if menu == "Espace de Travail":
+        st.header("Espace de Travail")
         
-        st.write("---")
-        st.subheader("Outils Intelligence Artificielle")
         
-        if st.button("Generer un Resume"):
-            from utils import generate_summary_request
+        search_query = st.text_input("Nouveau sujet Wikipédia :")
+        if st.button("Chercher"):
+            if search_query:
+                from utils import search_wiki
+                with st.spinner("Recherche..."):
+                    res = search_wiki(st.session_state['token'], search_query)
+                    if res and res.status_code == 200:
+                        st.session_state['current_article'] = res.json()
+                        
+                        for key in ['current_summary', 'current_translation', 'current_quiz', 'quiz_result']:
+                            if key in st.session_state:
+                                del st.session_state[key]
+                        st.rerun()
+                    else:
+                        st.error("Rien trouve.")
+
+        
+        if 'current_article' in st.session_state:
+            art = st.session_state['current_article']
+            st.write("---")
+            st.subheader(art['title'])
+            st.write(art['content'][:1000] + "...")
             
-            with st.spinner("L'IA travaille..."):
+            
+            if st.button("Generer Resume"):
+                from utils import generate_summary_request
                 res = generate_summary_request(st.session_state['token'], art['id'])
-                
                 if res and res.status_code == 200:
-                    data = res.json()
-                    st.session_state['current_summary'] = data['result']
-                else:
-                    st.error("Erreur lors de la generation du resume")
-
-        if 'current_summary' in st.session_state:
-            st.success("Resume genere avec succes :")
-            st.write(st.session_state['current_summary'])
-        
-        
-        
-        st.write("---")
-        st.subheader("Traduire l'article")
-        
-        langue = st.selectbox("Choisir une langue", ["Anglais", "Arabe", "Espagnol", "Allemand"])
-        
-        if st.button("Traduire"):
-            from utils import translate_article_request
+                    st.session_state['current_summary'] = res.json()['result']
             
-            with st.spinner("Traduction en cours..."):
+            if 'current_summary' in st.session_state:
+                st.info(st.session_state['current_summary'])
+
+            
+            langue = st.selectbox("Langue", ["Anglais", "Arabe", "Espagnol"])
+            if st.button("Traduire"):
+                from utils import translate_article_request
                 res = translate_article_request(st.session_state['token'], art['id'], langue)
-                
                 if res and res.status_code == 200:
-                    data = res.json()
-                    st.session_state['current_translation'] = data['result']
-                else:
-                    st.error("Erreur lors de la traduction")
+                    st.session_state['current_translation'] = res.json()['result']
+            
+            if 'current_translation' in st.session_state:
+                st.info(st.session_state['current_translation'])
 
-        if 'current_translation' in st.session_state:
-            st.success("Traduction :")
-            st.write(st.session_state['current_translation'][:1000] + "...")
             
-        
-        
-        
-        st.write("---")
-        st.subheader("Quiz de connaissances")
-        
-        if st.button("Generer un Quiz"):
-            from utils import generate_quiz_request
-            
-            with st.spinner("Generation des questions..."):
+            if st.button("Generer Quiz"):
+                from utils import generate_quiz_request
                 res = generate_quiz_request(st.session_state['token'], art['id'])
-                
                 if res and res.status_code == 200:
                     st.session_state['current_quiz'] = res.json()
-                    if 'quiz_result' in st.session_state:
-                        del st.session_state['quiz_result']
-                else:
-                    st.error("Erreur generation quiz")
-
-        if 'current_quiz' in st.session_state:
-            quiz_data = st.session_state['current_quiz']
-            st.write(f"Questionnaire : {len(quiz_data['questions'])} questions")
+                    if 'quiz_result' in st.session_state: del st.session_state['quiz_result']
             
-            with st.form("quiz_form"):
-                user_answers_indices = []
-                
-                for q in quiz_data['questions']:
-                    st.write(f"**{q['question']}**")
-                    choix = st.radio("Reponse :", q['options'], key=q['id'])
-                    index_choix = q['options'].index(choix)
-                    user_answers_indices.append(index_choix)
-                    st.write("---")
-                
-                submitted = st.form_submit_button("Valider mes reponses")
-                
-                if submitted:
-                    from utils import submit_quiz_request
-                    res = submit_quiz_request(st.session_state['token'], quiz_data['quiz_id'], user_answers_indices)
+            if 'current_quiz' in st.session_state:
+                quiz = st.session_state['current_quiz']
+                with st.form("quiz"):
+                    reponses = []
+                    for q in quiz['questions']:
+                        st.write(q['question'])
+                        choix = st.radio("Choix", q['options'], key=q['id'])
+                        reponses.append(q['options'].index(choix))
                     
-                    if res and res.status_code == 200:
-                        st.session_state['quiz_result'] = res.json()
-                    else:
-                        st.error("Erreur lors de la correction")
+                    if st.form_submit_button("Valider"):
+                        from utils import submit_quiz_request
+                        res = submit_quiz_request(st.session_state['token'], quiz['quiz_id'], reponses)
+                        if res and res.status_code == 200:
+                            st.success(f"Score: {res.json()['score']}%")
 
-        if 'quiz_result' in st.session_state:
-            result = st.session_state['quiz_result']
-            st.success(f"Score : {result['score']}%")
-            st.info(result['message'])
+    
+    elif menu == "Historique":
+        st.header("Mes Articles")
+        
+        from utils import get_history_articles, get_full_article
+        res = get_history_articles(st.session_state['token'])
+        
+        if res and res.status_code == 200:
+            articles = res.json()
+            for a in articles:
+                col1, col2 = st.columns([4, 1])
+                with col1:
+                    st.write(f"**{a['title']}** ({a['created_at'][:10]})")
+                with col2:
+                    if st.button("Charger", key=a['id']):
+                        
+                        full_res = get_full_article(st.session_state['token'], a['id'])
+                        if full_res and full_res.status_code == 200:
+                            st.session_state['current_article'] = full_res.json()
+                            
+                            for key in ['current_summary', 'current_translation', 'current_quiz', 'quiz_result']:
+                                if key in st.session_state:
+                                    del st.session_state[key]
+                            st.success("Article charge ! Retournez dans l'Espace de Travail.")
+        else:
+            st.warning("Aucun historique.")
