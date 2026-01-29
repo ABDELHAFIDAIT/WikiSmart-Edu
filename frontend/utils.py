@@ -139,3 +139,15 @@ def upload_pdf_request(token, file_obj):
         return response
     except:
         return None
+    
+
+def update_password_request(token, old_pass, new_pass):
+    url = f"{API_URL}/users/me/password"
+    headers = {"Authorization": f"Bearer {token}"}
+    payload = {"old_password": old_pass, "new_password": new_pass}
+    
+    try:
+        response = requests.put(url, json=payload, headers=headers)
+        return response
+    except:
+        return None

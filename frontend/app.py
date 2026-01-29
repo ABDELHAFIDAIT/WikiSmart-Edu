@@ -52,7 +52,7 @@ if st.session_state['token'] is None:
 else:
     st.sidebar.write(f"Utilisateur : {get_user_profile(st.session_state['token']).json()['username']}")    
     
-    menu = st.sidebar.radio("Navigation", ["Espace de Travail", "Historique"])
+    menu = st.sidebar.radio("Navigation", ["Espace de Travail", "Historique", "Profil"])
     
     if st.sidebar.button("Se deconnecter"):
         st.session_state['token'] = None
@@ -175,3 +175,38 @@ else:
                             st.success("Article charge ! Retournez dans l'Espace de Travail.")
         else:
             st.warning("Aucun historique.")
+    
+    
+    elif menu == "Profil":
+        st.header("Mon Profil")
+        
+        from utils import get_user_profile
+        profil_req = get_user_profile(st.session_state['token'])
+        
+        if profil_req and profil_req.status_code == 200:
+            infos = profil_req.json()
+            
+            st.write(f"**Nom d'utilisateur :** {infos['username']}")
+            st.write(f"**Email :** {infos['email']}")
+            st.write(f"**Rôle :** {infos['role']}")
+            
+            st.write("---")
+            st.subheader("Changer de mot de passe")
+            
+            with st.form("password_change"):
+                old_pass = st.text_input("Ancien mot de passe", type="password")
+                new_pass = st.text_input("Nouveau mot de passe", type="password")
+                bouton_mdp = st.form_submit_button("Mettre à jour")
+                
+                if bouton_mdp:
+                    from utils import update_password_request
+                    res = update_password_request(st.session_state['token'], old_pass, new_pass)
+                    
+                    if res and res.status_code == 200:
+                        st.success("Mot de passe modifié avec succès !")
+                    elif res and res.status_code == 400:
+                        st.error("Erreur : Ancien mot de passe incorrect.")
+                    else:
+                        st.error("Erreur technique.")
+        else:
+            st.error("Impossible de charger les informations du profil.")
