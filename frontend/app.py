@@ -62,22 +62,41 @@ else:
     if menu == "Espace de Travail":
         st.header("Espace de Travail")
         
+        source_type = st.radio("Source du contenu :", ["Wikipédia", "Fichier PDF"], horizontal=True)
         
-        search_query = st.text_input("Nouveau sujet Wikipédia :")
-        if st.button("Chercher"):
-            if search_query:
-                from utils import search_wiki
-                with st.spinner("Recherche..."):
-                    res = search_wiki(st.session_state['token'], search_query)
-                    if res and res.status_code == 200:
-                        st.session_state['current_article'] = res.json()
+        if source_type == "Wikipédia":
+            search_query = st.text_input("Sujet Wikipédia :")
+            if st.button("Chercher"):
+                if search_query:
+                    from utils import search_wiki
+                    with st.spinner("Recherche..."):
+                        res = search_wiki(st.session_state['token'], search_query)
+                        if res and res.status_code == 200:
+                            st.session_state['current_article'] = res.json()
+                            for key in ['current_summary', 'current_translation', 'current_quiz', 'quiz_result']:
+                                if key in st.session_state: del st.session_state[key]
+                            st.rerun()
+                        else:
+                            st.error("Article non trouve.")
+
+        elif source_type == "Fichier PDF":
+            uploaded_file = st.file_uploader("Choisissez un fichier PDF", type="pdf")
+            
+            if uploaded_file is not None:
+                if st.button("Envoyer et Analyser"):
+                    from utils import upload_pdf_request
+                    with st.spinner("Extraction du texte..."):
+                        res = upload_pdf_request(st.session_state['token'], uploaded_file)
                         
-                        for key in ['current_summary', 'current_translation', 'current_quiz', 'quiz_result']:
-                            if key in st.session_state:
-                                del st.session_state[key]
-                        st.rerun()
-                    else:
-                        st.error("Rien trouve.")
+                        if res and res.status_code == 200:
+                            st.session_state['current_article'] = res.json()
+                            # Reset des etats
+                            for key in ['current_summary', 'current_translation', 'current_quiz', 'quiz_result']:
+                                if key in st.session_state: del st.session_state[key]
+                            st.success("PDF charge avec succes !")
+                            st.rerun()
+                        else:
+                            st.error("Erreur lors de l'upload.")
 
         
         if 'current_article' in st.session_state:

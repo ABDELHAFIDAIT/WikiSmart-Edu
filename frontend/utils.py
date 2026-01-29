@@ -126,3 +126,16 @@ def get_full_article(token, article_id):
         return requests.get(url, headers=headers)
     except:
         return None
+
+
+
+def upload_pdf_request(token, file_obj):
+    url = f"{API_URL}/upload/pdf"
+    headers = {"Authorization": f"Bearer {token}"}
+    files = {"file": (file_obj.name, file_obj, "application/pdf")}
+    
+    try:
+        response = requests.post(url, files=files, headers=headers)
+        return response
+    except:
+        return None
