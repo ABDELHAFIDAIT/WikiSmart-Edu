@@ -90,7 +90,6 @@ else:
                         
                         if res and res.status_code == 200:
                             st.session_state['current_article'] = res.json()
-                            # Reset des etats
                             for key in ['current_summary', 'current_translation', 'current_quiz', 'quiz_result']:
                                 if key in st.session_state: del st.session_state[key]
                             st.success("PDF charge avec succes !")
@@ -151,30 +150,51 @@ else:
 
     
     elif menu == "Historique":
-        st.header("Mes Articles")
+        st.header("Mes Articles et Scores")
         
-        from utils import get_history_articles, get_full_article
+        from utils import get_history_articles, get_full_article, get_article_quizzes_request, get_quiz_attempts_request
         res = get_history_articles(st.session_state['token'])
         
         if res and res.status_code == 200:
             articles = res.json()
+            
             for a in articles:
-                col1, col2 = st.columns([4, 1])
-                with col1:
-                    st.write(f"**{a['title']}** ({a['created_at'][:10]})")
-                with col2:
-                    if st.button("Charger", key=a['id']):
+                with st.expander(f"{a['title']} ({a['created_at'][:10]})"):
+                    
+                    col1, col2 = st.columns([1, 1])
+                    
+                    with col1:
+                        if st.button("Travailler dessus", key=f"load_{a['id']}"):
+                            full_res = get_full_article(st.session_state['token'], a['id'])
+                            if full_res and full_res.status_code == 200:
+                                st.session_state['current_article'] = full_res.json()
+                                for key in ['current_summary', 'current_translation', 'current_quiz', 'quiz_result']:
+                                    if key in st.session_state: del st.session_state[key]
+                                st.success("Chargé ! Allez dans 'Espace de Travail'")
+
+                    with col2:
+                        st.caption("Historique des Quiz")
+                        quizzes_res = get_article_quizzes_request(st.session_state['token'], a['id'])
                         
-                        full_res = get_full_article(st.session_state['token'], a['id'])
-                        if full_res and full_res.status_code == 200:
-                            st.session_state['current_article'] = full_res.json()
+                        if quizzes_res and quizzes_res.status_code == 200:
+                            quizzes = quizzes_res.json()
+                            if not quizzes:
+                                st.write("Aucun quiz généré.")
                             
-                            for key in ['current_summary', 'current_translation', 'current_quiz', 'quiz_result']:
-                                if key in st.session_state:
-                                    del st.session_state[key]
-                            st.success("Article charge ! Retournez dans l'Espace de Travail.")
+                            for q in quizzes:
+                                attempts_res = get_quiz_attempts_request(st.session_state['token'], q['id'])
+                                if attempts_res and attempts_res.status_code == 200:
+                                    attempts = attempts_res.json()
+                                    if attempts:
+                                        for attempt in attempts:
+                                            st.write(f"- Quiz du {q['created_at'][:10]} : **{attempt['score']}%**")
+                                    else:
+                                        st.write(f"- Quiz du {q['created_at'][:10]} : Pas encore tenté")
+                        else:
+                            st.write("Erreur chargement quiz.")
+
         else:
-            st.warning("Aucun historique.")
+            st.warning("Vous n'avez pas encore d'historique.")
     
     
     elif menu == "Profil":

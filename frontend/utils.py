@@ -151,3 +151,23 @@ def update_password_request(token, old_pass, new_pass):
         return response
     except:
         return None
+
+
+
+def get_article_quizzes_request(token, article_id):
+    url = f"{API_URL}/users/me/history/articles/{article_id}/quizzes"
+    headers = {"Authorization": f"Bearer {token}"}
+    try:
+        return requests.get(url, headers=headers)
+    except:
+        return None
+
+
+
+def get_quiz_attempts_request(token, quiz_id):
+    url = f"{API_URL}/users/me/history/quizzes/{quiz_id}/attempts"
+    headers = {"Authorization": f"Bearer {token}"}
+    try:
+        return requests.get(url, headers=headers)
+    except:
+        return None
